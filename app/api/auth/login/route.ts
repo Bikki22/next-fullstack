@@ -30,14 +30,21 @@ export const POST = route(async (request) => {
     throw forbidden("This account has been suspended");
   }
 
-  const session = {
+  await createSession({
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
+  });
+
+  // `id`, not the session's `userId` — every auth route answers in the same
+  // shape as `GET /api/auth/me`, so clients need only one parser.
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
   };
-
-  await createSession(session);
-
-  return { user: session };
 });

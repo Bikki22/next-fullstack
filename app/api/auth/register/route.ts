@@ -4,7 +4,7 @@ import { parseBody, route } from "@/lib/api/route";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
-import { slugify } from "@/lib/format";
+import { uniqueStoreSlug } from "@/lib/stores/slug";
 import { registerSchema } from "@/lib/validations/auth";
 
 export const POST = route(async (request) => {
@@ -28,7 +28,7 @@ export const POST = route(async (request) => {
             store: {
               create: {
                 name: input.storeName,
-                // slug: await uniqueStoreSlug(input.storeName),
+                slug: await uniqueStoreSlug(input.storeName),
                 // New sellers start pending; a super admin approves them.
                 status: StoreStatus.PENDING,
               },
