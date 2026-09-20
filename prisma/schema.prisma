@@ -29,6 +29,12 @@ enum StoreStatus {
   SUSPENDED
 }
 
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -57,9 +63,46 @@ model Store {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  products Product[]
 
   @@index([status])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  products Product[]
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  storeId     String
+  categoryId  String?
+  name        String
+  slug        String
+  description String?
+  // Integer cents, like every other amount in the app — see lib/format.ts.
+  priceCents  Int
+  stock       Int           @default(0)
+  images      String[]
+  status      ProductStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Two stores may each sell a "blue-shirt"; one store may not list it twice.
+  @@unique([storeId, slug])
+  @@index([status])
+  @@index([categoryId])
+  @@index([storeId, status])
+  @@index([createdAt])
+  @@index([priceCents])
 }
 
 model Address {
