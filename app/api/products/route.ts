@@ -22,7 +22,7 @@ const ORDER_BY: Record<string, ProductOrderByWithRelationInput> = {
   price_desc: { priceCents: "desc" },
 };
 
-export async function GET(request: NextRequest, _response: NextResponse) {
+export async function GET(request: NextRequest) {
   try {
     const query = productQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams),

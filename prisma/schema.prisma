@@ -49,6 +49,7 @@ model User {
 
   addresses Address[]
   store     Store?
+  cartItems CartItem[]
 
   @@index([role])
   @@index([createdAt])
@@ -93,8 +94,9 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category  Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cartItems CartItem[]
 
   // Two stores may each sell a "blue-shirt"; one store may not list it twice.
   @@unique([storeId, slug])
@@ -103,6 +105,25 @@ model Product {
   @@index([storeId, status])
   @@index([createdAt])
   @@index([priceCents])
+}
+
+// One cart per user, so the lines hang off the user directly — no Cart row to
+// create or keep in sync. Prices are read live from Product, never copied
+// here: the cart always shows what checkout will charge.
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // Adding a product twice bumps the quantity instead of adding a second line.
+  @@unique([userId, productId])
+  @@index([productId])
 }
 
 model Address {
